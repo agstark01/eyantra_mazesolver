@@ -4,6 +4,8 @@ module quadrature_encoder #(
 )(
     input  wire        clk,
     input  wire        reset,
+	 
+	 input wire reset_from_exe,
 
     input  wire        a,
     input  wire        b,
@@ -35,7 +37,13 @@ module quadrature_encoder #(
             prev_state <= {a_sync2, b_sync2};
             curr_state <= 2'b00;
             position   <= 32'sd0;
-        end else begin
+        end 
+			else if(reset_from_exe)begin
+				prev_state <= {a_sync2, b_sync2};
+            curr_state <= 2'b00;
+            position   <= 32'sd0;
+			end
+		  else begin
             curr_state <= {a_sync2, b_sync2};
 
             case ({prev_state, curr_state})

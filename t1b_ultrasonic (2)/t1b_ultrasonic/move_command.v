@@ -1,0 +1,100 @@
+mmodule move_command (
+    input  wire        clk,
+    input  wire        reset,        // active-low
+    input  wire        start_turn,    // pulse to start turn
+    input  wire        turn_left,     // 1 = left, 0 = right
+
+    input  wire signed [31:0] positionA,
+    input  wire signed [31:0] positionB,
+
+    output reg         turning,
+    output reg         turn_done,
+
+    output reg  [7:0]  pwm_left,
+    output reg  [7:0]  pwm_right,
+    output reg         IN1, IN2, IN3, IN4
+);
+
+    parameter TURN_90 = 860;
+    parameter TURN_PWM = 10;
+
+    reg signed [31:0] startA, startB;
+    reg [31:0] delta_avg;
+
+    // FSM states
+    localparam IDLE    = 2'b00,
+               TURNING = 2'b01,
+               DONE    = 2'b10;
+
+    reg [1:0] state;
+
+    // --------------------------------------------------
+    // FSM
+    // --------------------------------------------------
+    always @(posedge clk or negedge reset) begin
+        if (!reset) begin
+            state      <= IDLE;
+            turning    <= 1'b0;
+            turn_done  <= 1'b0;
+            pwm_left   <= 0;
+            pwm_right  <= 0;
+            {IN1,IN2,IN3,IN4} <= 4'b0000;
+        end
+        else begin
+            case (state)
+
+            // ---------------- IDLE ----------------
+            IDLE: begin
+                turn_done <= 1'b0;
+                turning   <= 1'b0;
+
+                if (start_turn) begin
+                    startA <= positionA;
+                    startB <= positionB;
+                    state  <= TURNING;
+                end
+            end
+
+            // ---------------- TURNING ----------------
+            TURNING: begin
+                turning <= 1'b1;
+
+                // In-place turn motor directions
+                if (turn_left) begin
+                    // Left wheel backward, right forward
+                    {IN1,IN2,IN3,IN4} <= 4'b0101;
+                end
+                else begin
+                    // Right turn
+                    {IN1,IN2,IN3,IN4} <= 4'b1010;
+                end
+
+                pwm_left  <= TURN_PWM;
+                pwm_right <= TURN_PWM;
+
+                // Average absolute encoder movement
+                delta_avg <= ( (positionA > startA ? positionA - startA : startA - positionA)
+                             + (positionB > startB ? positionB - startB : startB - positionB) ) >> 1;
+
+                if (delta_avg >= TURN_90) begin
+                    state <= DONE;
+                end
+            end
+
+            // ---------------- DONE ----------------
+            DONE: begin
+                turning   <= 1'b0;
+                turn_done <= 1'b1;
+
+                pwm_left  <= 0;
+                pwm_right <= 0;
+                {IN1,IN2,IN3,IN4} <= 4'b0000;
+
+                state <= IDLE;
+            end
+
+            endcase
+        end
+    end
+
+endmodule

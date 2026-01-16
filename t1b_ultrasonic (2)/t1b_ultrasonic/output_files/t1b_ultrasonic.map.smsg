@@ -1,0 +1,3 @@
+Warning (10268): Verilog HDL information at top_ultrasonic.v(79): always construct contains both blocking and non-blocking assignments File: D:/eyantra/task4/t1b_ultrasonic (2)/t1b_ultrasonic/output_files/top_ultrasonic.v Line: 79
+Warning (10268): Verilog HDL information at frequency_scaling.v(16): always construct contains both blocking and non-blocking assignments File: D:/eyantra/task4/t1b_ultrasonic (2)/t1b_ultrasonic/frequency_scaling.v Line: 16
+Warning (10268): Verilog HDL information at t2c_maze_explorer.v(89): always construct contains both blocking and non-blocking assignments File: D:/eyantra/task4/t1b_ultrasonic (2)/t1b_ultrasonic/t2c_maze_explorer.v Line: 89

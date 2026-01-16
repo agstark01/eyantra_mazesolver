@@ -1,0 +1,3 @@
+Warning (10268): Verilog HDL information at t2c_maze_explorer.v(41): always construct contains both blocking and non-blocking assignments File: C:/Users/rajjo/Downloads/1185#56_mb_1189_task2c/mb_1189_task2c/t2c_maze_explorer/code/t2c_maze_explorer.v Line: 41
+Warning (10268): Verilog HDL information at t2c_maze_explorer.v(83): always construct contains both blocking and non-blocking assignments File: C:/Users/rajjo/Downloads/1185#56_mb_1189_task2c/mb_1189_task2c/t2c_maze_explorer/code/t2c_maze_explorer.v Line: 83
+Warning (10268): Verilog HDL information at t1b_ultrasonic.v(114): always construct contains both blocking and non-blocking assignments File: C:/Users/rajjo/OneDrive/Desktop/t1b_ultrasonic/code/t1b_ultrasonic.v Line: 114

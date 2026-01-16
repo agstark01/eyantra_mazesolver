@@ -1,0 +1,78 @@
+module quadrature_encoder #(
+    parameter CLK_FREQ_HZ = 50_000_000,  // system clock
+    parameter VEL_HZ      = 1000          // velocity update rate (Hz)
+)(
+    input  wire        clk,
+    input  wire        reset,
+
+    input  wire        a,
+    input  wire        b,
+
+    output reg  signed [31:0] position,   // 4× decoded position
+    output reg  signed [31:0] velocity    // counts per VEL period
+);
+
+    // -------------------------------------------------
+    // Synchronize encoder inputs
+    // -------------------------------------------------
+    reg a_sync1, a_sync2;
+    reg b_sync1, b_sync2;
+
+    always @(posedge clk) begin
+        a_sync1 <= a;
+        a_sync2 <= a_sync1;
+        b_sync1 <= b;
+        b_sync2 <= b_sync1;
+    end
+
+    // -------------------------------------------------
+    // Quadrature decode (4×)
+    // -------------------------------------------------
+    reg [1:0] prev_state, curr_state;
+
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            prev_state <= 2'b00;
+            curr_state <= 2'b00;
+            position   <= 32'sd0;
+        end else begin
+            curr_state <= {a_sync2, b_sync2};
+
+            case ({prev_state, curr_state})
+                4'b0001, 4'b0111, 4'b1110, 4'b1000:
+                    position <= position + 1;
+                4'b0010, 4'b0100, 4'b1101, 4'b1011:
+                    position <= position - 1;
+                default:
+                    position <= position; // no move / invalid
+            endcase
+
+            prev_state <= curr_state;
+        end
+    end
+
+    // -------------------------------------------------
+    // Velocity estimation (counts per fixed interval)
+    // -------------------------------------------------
+    localparam integer VEL_CNT_MAX = CLK_FREQ_HZ / VEL_HZ;
+
+    reg [$clog2(VEL_CNT_MAX)-1:0] vel_timer;
+    reg signed [31:0] position_latched;
+
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            vel_timer        <= 0;
+            velocity         <= 0;
+            position_latched <= 0;
+        end else begin
+            if (vel_timer == VEL_CNT_MAX - 1) begin
+                vel_timer        <= 0;
+                velocity         <= position - position_latched;
+                position_latched <= position;
+            end else begin
+                vel_timer <= vel_timer + 1;
+            end
+        end
+    end
+
+endmodule

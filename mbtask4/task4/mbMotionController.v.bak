@@ -1,0 +1,134 @@
+module motionController(
+	 input  wire        clk,
+    input  wire        reset,
+
+    // Maze solver command
+    input  wire [2:0]  motion_cmd,
+
+    // Sensors
+    input  wire [15:0] front_dist,
+    input  wire [15:0] left_dist,
+    input  wire [15:0] right_dist,
+
+    input  wire signed [31:0] left_enc,
+    input  wire signed [31:0] right_enc,
+
+    // Motor outputs
+    output reg  [7:0]  left_pwm,
+    output reg  [7:0]  right_pwm,
+    output reg         left_dir,
+    output reg         right_dir
+);
+
+    // -----------------------------
+    // Parameters
+    // -----------------------------
+    parameter BASE_SPEED      = 8'd110;
+    parameter FRONT_STOP_DIST = 16'd15;
+
+    parameter KP_ENC  = 3;
+    parameter KD_ENC  = 1;
+
+    parameter KP_WALL = 1;
+
+    // -----------------------------
+    // Motion states
+    // -----------------------------
+    localparam STOP       = 3'd0,
+               FORWARD    = 3'd1,
+               TURN_LEFT  = 3'd2,
+               TURN_RIGHT = 3'd3,
+               U_TURN     = 3'd4;
+
+    // -----------------------------
+    // Internal signals
+    // -----------------------------
+    reg signed [31:0] error_enc, prev_error_enc;
+    reg signed [31:0] d_error_enc;
+
+    reg signed [15:0] error_wall;
+    reg signed [31:0] correction;
+
+    reg signed [31:0] left_speed, right_speed;
+
+    // -----------------------------
+    // Control loop
+    // -----------------------------
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            prev_error_enc <= 0;
+            left_pwm       <= 0;
+            right_pwm      <= 0;
+            left_dir       <= 1'b1;
+            right_dir      <= 1'b1;
+        end else begin
+
+            // Defaults
+            left_dir  <= 1'b1;
+            right_dir <= 1'b1;
+
+            case (motion_cmd)
+
+                STOP: begin
+                    left_pwm  <= 0;
+                    right_pwm <= 0;
+                end
+
+                FORWARD: begin
+                    // Stop if obstacle ahead
+                    if (front_dist < FRONT_STOP_DIST) begin
+                        left_pwm  <= 0;
+                        right_pwm <= 0;
+                    end else begin
+                        // Encoder straight correction
+                        error_enc    <= left_enc - right_enc;
+                        d_error_enc  <= error_enc - prev_error_enc;
+
+                        // Wall correction (small influence)
+                        error_wall <= left_dist - right_dist;
+
+                        correction <= (KP_ENC * error_enc)
+                                    + (KD_ENC * d_error_enc)
+                                    + (KP_WALL * error_wall);
+
+                        left_speed  <= BASE_SPEED - correction;
+                        right_speed <= BASE_SPEED + correction;
+
+                        // Clamp PWM
+                        left_pwm  <= (left_speed  < 0)   ? 0 :
+                                     (left_speed  > 255) ? 8'd255 :
+                                     left_speed[7:0];
+
+                        right_pwm <= (right_speed < 0)   ? 0 :
+                                     (right_speed > 255) ? 8'd255 :
+                                     right_speed[7:0];
+
+                        prev_error_enc <= error_enc;
+                    end
+                end
+
+                TURN_LEFT: begin
+                    left_dir  <= 1'b0;
+                    right_dir <= 1'b1;
+                    left_pwm  <= 8'd100;
+                    right_pwm <= 8'd100;
+                end
+
+                TURN_RIGHT: begin
+                    left_dir  <= 1'b1;
+                    right_dir <= 1'b0;
+                    left_pwm  <= 8'd100;
+                    right_pwm <= 8'd100;
+                end
+
+                U_TURN: begin
+                    left_dir  <= 1'b0;
+                    right_dir <= 1'b1;
+                    left_pwm  <= 8'd120;
+                    right_pwm <= 8'd120;
+                end
+            endcase
+        end
+    end
+)
+endmodule

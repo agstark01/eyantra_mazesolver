@@ -1,0 +1,36 @@
+module top_ultrasonic(
+	 input clk_50M, reset, echo_rx1, echo_rx2, echo_rx3
+    output reg trig1,trig2,trig3
+    output op1,op2,op3
+    //output [1:0] curr,
+    output wire [15:0] distance_out1, [15:0]distance_out2, [15:0]distance_out3
+);
+
+t1b_ultrasonic sensor1(
+		.clk_50M(clk_50M);
+		.echo_rx(echo_rx1);
+		.reset(reset);
+		.trig(trig1);
+		.op(op1);
+		.distance_out(distance_out1)
+);
+
+t1b_ultrasonic sensor2(
+		.clk_50M(clk_50M);
+		.echo_rx(echo_rx2);
+		.reset(reset);
+		.trig(trig2);
+		.op(op2);
+		.distance_out(distance_out2)
+);
+
+t1b_ultrasonic sensor3(
+		.clk_50M(clk_50M);
+		.echo_rx(echo_rx3);
+		.reset(reset);
+		.trig(trig3);
+		.op(op3);
+		.distance_out(distance_out3)
+);
+
+endmodule

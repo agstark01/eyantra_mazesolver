@@ -1,0 +1,21 @@
+
+State Machine - |top_ultrasonic|t1b_ultrasonic:sensor3|curr_st
+Name curr_st.wt curr_st.countt curr_st.trigg curr_st.00 
+curr_st.00 0 0 0 0 
+curr_st.trigg 0 0 1 1 
+curr_st.countt 0 1 0 1 
+curr_st.wt 1 0 0 1 
+
+State Machine - |top_ultrasonic|t1b_ultrasonic:sensor2|curr_st
+Name curr_st.wt curr_st.countt curr_st.trigg curr_st.00 
+curr_st.00 0 0 0 0 
+curr_st.trigg 0 0 1 1 
+curr_st.countt 0 1 0 1 
+curr_st.wt 1 0 0 1 
+
+State Machine - |top_ultrasonic|t1b_ultrasonic:sensor1|curr_st
+Name curr_st.wt curr_st.countt curr_st.trigg curr_st.00 
+curr_st.00 0 0 0 0 
+curr_st.trigg 0 0 1 1 
+curr_st.countt 0 1 0 1 
+curr_st.wt 1 0 0 1 

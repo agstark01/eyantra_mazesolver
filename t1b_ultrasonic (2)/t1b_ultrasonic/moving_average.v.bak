@@ -1,0 +1,25 @@
+module motor_test(
+	input clk,
+	input [15:0]dis_in, 
+	input reset,
+	output [15:0]dis_out
+);
+
+reg [15:0] mv1, mv2,mv3,mv4;
+
+always @(posedge clk, negedge reset)begin
+	if(!reset) begin
+		mv1 <= 0;
+		mv2 <= 0;
+		mv3 <= 0;
+		mv4 <= 0;
+	end else begin
+		mv1 <= dis_in;
+		mv2 <= mv1;
+		mv3 <= mv2;
+		mv4 <= mv3;
+	end
+end
+
+assign dis_out = (mv1+mv2+mv3+mv4)/4;
+endmodule
